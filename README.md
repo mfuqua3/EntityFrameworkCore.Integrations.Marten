@@ -2,6 +2,10 @@
 
 This library is designed to seamlessly integrate [Marten](https://martendb.io/), a .NET transactional document DB and event store on PostgreSQL, with [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/), the popular .NET ORM. The goal is to reduce the cognitive load for developers who work with both relational and document databases, providing a unified approach to data access.
 
+## Ongoing Development
+
+This project is a work-in-progress with an intended 1.0 release date of 17 July, 2023. Star the repository to follow development. 
+
 ## Design Goals
 
 1. Unify EF Core and Marten interactions under a single DbContext.
