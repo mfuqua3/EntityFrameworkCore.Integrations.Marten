@@ -29,11 +29,6 @@ public class Person
 public class MyDbContext : MartenIntegratedDbContext
 {
     public DbDocument<Person> People { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.UseMarten();
-    }
 }
 ```
 
