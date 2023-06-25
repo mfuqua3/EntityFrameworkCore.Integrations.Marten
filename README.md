@@ -53,9 +53,11 @@ using (var context = new MyDbContext())
 Migrations are leveraged to detect changes to the Marten documents schemas. When adding or removing a DocumentSet<T> from the context, a migration is generated via EF Core's mechanisms. The migration then delegates to Marten's schema handling capabilities to correctly apply the changes and keep the EF Core model snapshot updated.
 
 # To add a migration
+```bash
 dotnet ef migrations add AddPersonDocument
-
+```
 # To update the database
+```bash
 dotnet ef database update
-
+```
 This README assumes certain functionality that matches your library's intended design. Make sure to update the code examples to reflect the actual API as your implementation progresses.
