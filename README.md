@@ -22,9 +22,9 @@ public class Person
 ```
 
 ```csharp
-public class MyDbContext : DbContext
+public class MyDbContext : MartenIntegratedDbContext
 {
-    public DocumentSet<Person> People { get; set; }
+    public DbDocument<Person> People { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
