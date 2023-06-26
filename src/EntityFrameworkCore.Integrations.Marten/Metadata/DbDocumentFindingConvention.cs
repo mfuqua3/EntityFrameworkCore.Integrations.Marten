@@ -22,6 +22,7 @@ public class DbDocumentFindingConvention : IModelInitializedConvention
                 documentInfo.Type,
                 Dependencies.StoreOptions);
             var entityTypeBuilder = modelBuilder.Entity(documentInfo.Type);
+            entityTypeBuilder.HasAnnotation("EntityAccessStrategy", "Marten");
             Dependencies.EntityTypeBuilder.ProcessMartenDocument(entityTypeBuilder!, documentMapping);
         }
     }
