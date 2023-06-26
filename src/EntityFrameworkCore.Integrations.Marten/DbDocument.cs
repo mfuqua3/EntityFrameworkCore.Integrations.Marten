@@ -1,4 +1,8 @@
-﻿namespace EntityFrameworkCore.Integrations.Marten;
+﻿using System.Collections;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+
+namespace EntityFrameworkCore.Integrations.Marten;
 
 /// <summary>
 ///     A <see cref="DbDocument{TEntity}" /> can be used to query and save instances of <typeparamref name="TEntity" />.
@@ -29,6 +33,77 @@
 ///     </para>
 /// </remarks>
 /// <typeparam name="TEntity">The type of entity being operated on by this set.</typeparam>
-public abstract class DbDocument<TEntity> where TEntity : class
+public abstract class DbDocument<TEntity> : IQueryable<TEntity> where TEntity : class
 {
+    /// <summary>
+    ///     Returns this object typed as <see cref="IAsyncEnumerable{T}" />.
+    /// </summary>
+    /// <returns>This object.</returns>
+    public virtual IAsyncEnumerable<TEntity> AsAsyncEnumerable()
+        => (IAsyncEnumerable<TEntity>)this;
+    /// <summary>
+    ///     Returns this object typed as <see cref="IQueryable{T}" />.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         This is a convenience method to help with disambiguation of extension methods in the same
+    ///         namespace that extend both interfaces.
+    ///     </para>
+    /// </remarks>
+    /// <returns>This object.</returns>
+    public virtual IQueryable<TEntity> AsQueryable()
+        => this;
+    /// <summary>
+    ///     Returns an <see cref="IEnumerator{T}" /> which when enumerated will execute a query against the database
+    ///     to load all entities from the database.
+    /// </summary>
+    /// <returns>The query results.</returns>
+    IEnumerator<TEntity> IEnumerable<TEntity>.GetEnumerator()
+        => throw new NotSupportedException();
+    /// <summary>
+    ///     Returns an <see cref="IEnumerator" /> which when enumerated will execute a query against the database
+    ///     to load all entities from the database.
+    /// </summary>
+    /// <returns>The query results.</returns>
+    IEnumerator IEnumerable.GetEnumerator()
+        => throw new NotSupportedException();
+    /// <summary>
+    ///     Gets the IQueryable element type.
+    /// </summary>
+    Type IQueryable.ElementType 
+        => throw new NotSupportedException();
+    /// <summary>
+    ///     Gets the IQueryable LINQ Expression.
+    /// </summary>
+    Expression IQueryable.Expression 
+        => throw new NotSupportedException();
+    /// <summary>
+    ///     Gets the IQueryable provider.
+    /// </summary>
+    IQueryProvider IQueryable.Provider 
+        => throw new NotSupportedException();
+    public virtual void Add(TEntity entity)
+        => throw new NotSupportedException();
+    public virtual void Remove(TEntity entity)
+        => throw new NotSupportedException();
+    public virtual void Update(TEntity entity)
+        => throw new NotSupportedException();
+    public virtual void Upsert(TEntity entity)
+        => throw new NotSupportedException();
+    public virtual void AddRange(params TEntity[] entities)
+        => throw new NotSupportedException();
+    public virtual void AddRange(IEnumerable<TEntity> entities)
+        => throw new NotSupportedException();
+    public virtual void RemoveRange(params TEntity[] entities)
+        => throw new NotSupportedException();
+    public virtual void RemoveRange(IEnumerable<TEntity> entities)
+        => throw new NotSupportedException();
+    public virtual void UpdateRange(params TEntity[] entities)
+        => throw new NotSupportedException();
+    public virtual void UpdateRange(IEnumerable<TEntity> entities)
+        => throw new NotSupportedException();
+    public virtual void UpsertRange(params TEntity[] entities)
+        => throw new NotSupportedException();
+    public virtual void UpsertRange(IEnumerable<TEntity> entities)
+        => throw new NotSupportedException();
 }
