@@ -4,7 +4,6 @@ using Marten.Schema;
 using Marten.Storage.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using Weasel.Postgresql;
 using Weasel.Postgresql.Tables;
 using SortOrder = Weasel.Postgresql.Tables.SortOrder;
@@ -74,7 +73,6 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
         foreach (var foreignKey in documentMapping.ForeignKeys)
         {
             var propertyBuilders = foreignKey.ColumnNames.Select(c => propertyBuilderLookup[c]).ToArray();
-            
         }
     }
 
@@ -116,9 +114,4 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
             .Where(x => x.PropertyType == typeof(MetadataColumn))
             .Select(pi => pi.GetValue(metadataCollection))
             .Cast<MetadataColumn>();
-}
-
-// ReSharper disable once UnusedTypeParameter
-public class MartenDocument<T> : MartenDocument
-{
 }
