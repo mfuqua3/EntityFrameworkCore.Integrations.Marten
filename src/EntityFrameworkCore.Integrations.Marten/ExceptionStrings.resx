@@ -21,4 +21,13 @@
     <data name="InvalidContextType" xml:space="preserve">
         <value>{0} must be of type {1} in order to apply the {2}</value>
     </data>
+    <data name="InvalidProviderConfiguration" xml:space="preserve">
+        <value>{0} can only be added with a Postgres database. No {1} could be found within the EF configuration.</value>
+    </data>
+    <data name="CannotResolveMartenResource" xml:space="preserve">
+        <value>Required MartenResource {0} could not be resolved.</value>
+    </data>
+    <data name="DocumentInitializationFailed" xml:space="preserve">
+        <value>{0} for entity type {1} failed to initialize.</value>
+    </data>
 </root>

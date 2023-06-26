@@ -67,5 +67,32 @@ namespace EntityFrameworkCore.Integrations.Marten {
                 return ResourceManager.GetString("InvalidContextType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string InvalidProviderConfiguration {
+            get {
+                return ResourceManager.GetString("InvalidProviderConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string CannotResolveMartenResource {
+            get {
+                return ResourceManager.GetString("CannotResolveMartenResource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string DocumentInitializationFailed {
+            get {
+                return ResourceManager.GetString("DocumentInitializationFailed", resourceCulture);
+            }
+        }
     }
 }

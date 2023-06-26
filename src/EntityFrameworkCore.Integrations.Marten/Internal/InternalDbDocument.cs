@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Linq.Expressions;
+using EntityFrameworkCore.Integrations.Marten.Exceptions;
+using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Marten.Linq;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -12,7 +14,9 @@ public class InternalDbDocument<TEntity> : DbDocument<TEntity>, IQueryable<TEnti
 
     public InternalDbDocument(DbContext dbContext)
     {
-        _documentSession = dbContext.GetService<IDocumentSession>();
+        var documentSession = dbContext.GetService<IDocumentSession>();
+        Assert.MartenResolvedForEntity<TEntity, IDocumentSession>(documentSession);
+        _documentSession = documentSession;
     }
 
     private IMartenQueryable<TEntity> EntityQueryable
