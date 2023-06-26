@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using EntityFrameworkCore.Integrations.Marten.Internal;
+using EntityFrameworkCore.Integrations.Marten.Metadata;
+using EntityFrameworkCore.Integrations.Marten.Metadata.Infrastructure;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +45,10 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
         _integrationServices
             .AddSingleton<IDbDocumentFinder, DbDocumentFinder>()
             .AddSingleton<IDbDocumentInitializer, DbDocumentInitializer>()
-            .AddSingleton<IDbDocumentSource, DbDocumentSource>();
+            .AddSingleton<IDbDocumentSource, DbDocumentSource>()
+            .AddSingleton<IDocumentMappingFactory, DocumentMappingFactory>()
+            .AddSingleton<IMartenDocumentEntityTypeBuilder, MartenDocumentEntityTypeBuilder>()
+            .AddSingleton<MartenIntegrationConventionSetBuilderDependencies>();
     }
 
     public void ApplyServices(IServiceCollection services)
