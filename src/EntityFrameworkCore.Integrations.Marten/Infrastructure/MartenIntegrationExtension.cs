@@ -5,6 +5,7 @@ using EntityFrameworkCore.Integrations.Marten.Metadata;
 using EntityFrameworkCore.Integrations.Marten.Metadata.Infrastructure;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -16,11 +17,15 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
 {
     private readonly IServiceCollection _integrationServices = new ServiceCollection();
     private DbContextOptionsExtensionInfo? _info;
+
     private StoreOptions StoreOptions { get; set; } = new()
     {
         AutoCreateSchemaObjects = AutoCreate.None
     };
+
+    public ICollection<MartenRegistry> MartenRegistries { get; set; } = new List<MartenRegistry>();
     public StoreOptions.PoliciesExpression Policies => StoreOptions.Policies;
+
     public int NameDataLength
     {
         get => StoreOptions.NameDataLength;
@@ -48,7 +53,10 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
             .AddSingleton<IDbDocumentSource, DbDocumentSource>()
             .AddSingleton<IDocumentMappingFactory, DocumentMappingFactory>()
             .AddSingleton<IMartenDocumentEntityTypeBuilder, MartenDocumentEntityTypeBuilder>()
-            .AddSingleton<MartenIntegrationConventionSetBuilderDependencies>();
+            .AddScoped<MartenIntegrationConventionSetBuilderDependencies>()
+            .AddScoped<DbDocumentMartenRegistryDependencies>()
+            .AddScoped<DbDocumentMartenRegistry>()
+            .AddScoped<IConventionSetPlugin, MartenIntegrationConventionSetPlugin>();
     }
 
     public void ApplyServices(IServiceCollection services)
@@ -85,6 +93,11 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
         StoreOptions.UpdateBatchSize = npgSqlOptionsExtension.MaxBatchSize ?? StoreOptions.UpdateBatchSize;
         SchemaName ??= coreOptions.Model?.GetDefaultSchema() ?? StoreOptions.DatabaseSchemaName;
         StoreOptions.DatabaseSchemaName = SchemaName;
+        foreach (var martenRegistry in MartenRegistries)
+        {
+            StoreOptions.Schema.Include(martenRegistry);
+        }
+
         if (!string.IsNullOrEmpty(npgSqlOptionsExtension.ConnectionString))
         {
             StoreOptions.Connection(npgSqlOptionsExtension.ConnectionString);

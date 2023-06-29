@@ -26,7 +26,6 @@ public sealed record MartenIntegrationConventionSetBuilderDependencies
     public StoreOptions StoreOptions { get; init; }
     public IDocumentMappingFactory DocumentMappingFactory { get; init; }
     public IDbDocumentFinder DocumentFinder { get; init; }
-
     public Type ContextType
         => _currentContext.Context.GetType();
 

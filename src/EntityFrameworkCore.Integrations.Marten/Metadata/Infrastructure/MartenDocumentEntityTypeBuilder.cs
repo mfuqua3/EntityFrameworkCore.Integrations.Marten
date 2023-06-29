@@ -19,7 +19,7 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
         entityTypeBuilder.ToTable(documentMapping.TableName.Name, documentMapping.TableName.Schema);
 
         //Ignore all properties on the entity type
-        foreach (var entityProperty in entityTypeBuilder.Metadata.GetProperties())
+        foreach (var entityProperty in entityTypeBuilder.Metadata.ClrType.GetProperties())
         {
             entityTypeBuilder.Ignore(entityProperty.Name);
         }
@@ -27,13 +27,13 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
         var propertyBuilderLookup =
             new Dictionary<string, IConventionPropertyBuilder>();
         var idProperty = entityTypeBuilder
-            .Property(documentMapping.IdType, MartenPropertyPrefix + documentMapping.IdMember.Name)
-            .HasColumnName("id")
-            .HasColumnType(PostgresqlProvider.Instance.GetDatabaseType(documentMapping.IdMember.GetMemberType(),
-                documentMapping.EnumStorage));
+            .Property(documentMapping.IdType, MartenPropertyPrefix + documentMapping.IdMember.Name)!
+            .HasColumnName("id")!
+            .HasColumnType(PostgresqlProvider.Instance.GetDatabaseType(documentMapping.IdMember.GetMemberType()!,
+                documentMapping.EnumStorage))!;
         propertyBuilderLookup.Add("id", idProperty);
-        entityTypeBuilder.PrimaryKey(new[] { idProperty!.Metadata });
-        foreach (var metadataColumn in GetDocumentMetadata(documentMapping.Metadata))
+        entityTypeBuilder.PrimaryKey(new[] { idProperty.Metadata });
+        foreach (var (name, metadataColumn) in GetDocumentMetadata(documentMapping.Metadata))
         {
             if (!metadataColumn.Enabled)
             {
@@ -41,9 +41,9 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
             }
 
             var propertyBuilder = entityTypeBuilder.Property(metadataColumn.DotNetType,
-                    MartenPropertyPrefix + metadataColumn.Member.Name)!
+                    MartenPropertyPrefix + name)!
                 .HasColumnType(metadataColumn.Type)!
-                .HasColumnName(metadataColumn.Name);
+                .HasColumnName(metadataColumn.Name)!;
             propertyBuilderLookup.Add(metadataColumn.Name, propertyBuilder);
             if (metadataColumn.Name == nameof(DocumentMetadataCollection.DocumentType) && documentMapping.IsHierarchy())
             {
@@ -59,14 +59,14 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
             }
         }
 
-        var dataBuilder = entityTypeBuilder.Property(typeof(JsonDocument), MartenPropertyPrefix + "Data")
-            .HasColumnName("data")
-            .HasColumnType("jsonb");
+        var dataBuilder = entityTypeBuilder.Property(typeof(JsonDocument), MartenPropertyPrefix + "Data")!
+            .HasColumnName("data")!
+            .HasColumnType("jsonb")!;
         propertyBuilderLookup.Add("data", dataBuilder);
 
         foreach (var indexDefinition in documentMapping.Indexes)
         {
-            var propertyBuilders = indexDefinition.Columns.Select(c => propertyBuilderLookup[c]).ToArray();
+            var propertyBuilders = indexDefinition.Columns!.Select(c => propertyBuilderLookup[c]).ToArray();
             BuildIndex(entityTypeBuilder, propertyBuilders, indexDefinition);
         }
 
@@ -84,10 +84,10 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
     private void BuildIndex(IConventionEntityTypeBuilder entityTypeBuilder, IConventionPropertyBuilder[] propertyBuilders,
         IndexDefinition index)
     {
-        var indexBuilder = entityTypeBuilder.HasIndex(propertyBuilders.Select(x=>x.Metadata.Name).ToArray(), index.Name)
-            .IsUnique(index.IsUnique)
-            .IsCreatedConcurrently(index.IsConcurrent)
-            .IsDescending(new[] { index.SortOrder == SortOrder.Desc })
+        var indexBuilder = entityTypeBuilder.HasIndex(propertyBuilders.Select(x=>x.Metadata.Name)!.ToArray(), index.Name)!
+            .IsUnique(index.IsUnique)!
+            .IsCreatedConcurrently(index.IsConcurrent)!
+            .IsDescending(new[] { index.SortOrder == SortOrder.Desc })!
             .HasNullSortOrder(new[]
             {
                 index.NullsSortOrder == NullsSortOrder.First
@@ -95,8 +95,8 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
                     : index.NullsSortOrder == NullsSortOrder.Last
                         ? NullSortOrder.NullsLast
                         : NullSortOrder.Unspecified
-            }, false)
-            .HasMethod(index.Method.ToString());
+            }, false)!
+            .HasMethod(index.Method.ToString())!;
         if (!string.IsNullOrEmpty(index.Collation))
         {
             indexBuilder.UseCollation(new[] { index.Collation }, false);
@@ -108,10 +108,10 @@ public class MartenDocumentEntityTypeBuilder : IMartenDocumentEntityTypeBuilder
         }
     }
 
-    private IEnumerable<MetadataColumn> GetDocumentMetadata(DocumentMetadataCollection metadataCollection)
+    private IEnumerable<Tuple<string, MetadataColumn>> GetDocumentMetadata(
+        DocumentMetadataCollection metadataCollection)
         => metadataCollection.GetType()
             .GetProperties()
             .Where(x => x.PropertyType == typeof(MetadataColumn))
-            .Select(pi => pi.GetValue(metadataCollection))
-            .Cast<MetadataColumn>();
+            .Select(pi => Tuple.Create(pi.Name, (MetadataColumn)pi.GetValue(metadataCollection)!));
 }

@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using EntityFrameworkCore.Integrations.Marten.Infrastructure;
 using EntityFrameworkCore.Integrations.Marten.Internal;
+using EntityFrameworkCore.Integrations.Marten.Metadata;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +18,7 @@ public class MartenIntegratedDbContext : DbContext, IDbDocumentCache
 {
     private bool _disposed;
     private IDictionary<Type, object>? _documents;
+
     /// <summary>
     /// Default constructor that initializes a new instance of the MartenIntegratedDbContext class.
     /// </summary>
@@ -61,7 +64,7 @@ public class MartenIntegratedDbContext : DbContext, IDbDocumentCache
 
     public override async ValueTask DisposeAsync()
     {
-         await base.DisposeAsync().ConfigureAwait(false);
+        await base.DisposeAsync().ConfigureAwait(false);
         _disposed = true;
     }
 

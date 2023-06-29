@@ -8,9 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Marten" Version="6.0.2" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+        <PackageReference Include="Marten" Version="6.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,10 +26,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Update="ExceptionStrings.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>MartenIntegrationStrings.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
+        <EmbeddedResource Update="ExceptionStrings.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>MartenIntegrationStrings.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
     </ItemGroup>
 
 </Project>

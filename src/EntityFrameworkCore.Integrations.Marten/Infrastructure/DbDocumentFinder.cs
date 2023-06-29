@@ -22,7 +22,7 @@ public class DbDocumentFinder : IDbDocumentFinder
                      && !p.GetIndexParameters().Any()
                      && p.DeclaringType != typeof(DbContext)
                      && p.PropertyType.GetTypeInfo().IsGenericType
-                     && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                     && p.PropertyType.GetGenericTypeDefinition() == typeof(DbDocument<>))
             .OrderBy(p => p.Name)
             .Select(
                 p => new DbDocumentProperty(p.PropertyType.GenericTypeArguments.Single(),

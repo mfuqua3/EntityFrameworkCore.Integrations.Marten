@@ -14,20 +14,19 @@ public class MartenIntegratedDbContextOptionsBuilder
     public MartenIntegratedDbContextOptionsBuilder WithPolicies(
         Action<StoreOptions.PoliciesExpression> configurePolicies) =>
         WithOption(ext => configurePolicies.Invoke(ext.Policies));
+
+    public MartenIntegratedDbContextOptionsBuilder WithRegistry(
+        MartenRegistry registry) =>
+        WithOption(ext => ext.MartenRegistries.Add(registry));
+
     public int NameDataLength
     {
-        set
-        {
-            WithOption(ext => ext.NameDataLength = value);
-        }
+        set { WithOption(ext => ext.NameDataLength = value); }
     }
 
     public string SchemaName
     {
-        set
-        {
-            WithOption(ext => ext.SchemaName = value);
-        }
+        set { WithOption(ext => ext.SchemaName = value); }
     }
 
     private MartenIntegratedDbContextOptionsBuilder WithOption(
@@ -37,6 +36,7 @@ public class MartenIntegratedDbContextOptionsBuilder
             setAction(ext);
             return ext;
         });
+
     private MartenIntegratedDbContextOptionsBuilder WithOption(
         Func<MartenIntegrationExtension, MartenIntegrationExtension> setAction)
     {
