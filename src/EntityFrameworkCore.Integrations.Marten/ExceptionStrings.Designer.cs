@@ -94,5 +94,31 @@ namespace EntityFrameworkCore.Integrations.Marten {
                 return ResourceManager.GetString("DocumentInitializationFailed", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string NoNpgsqlTypeMapping {
+            get {
+                return ResourceManager.GetString("NoNpgsqlTypeMapping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string EntityBuilderFailure {
+            get {
+                return ResourceManager.GetString("EntityBuilderFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string MartenResourceNotFound {
+            get {
+                return ResourceManager.GetString("MartenResourceNotFound", resourceCulture);
+            }
+        }
     }
 }

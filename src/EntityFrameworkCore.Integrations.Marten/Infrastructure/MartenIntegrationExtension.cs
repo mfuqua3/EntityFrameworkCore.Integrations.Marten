@@ -5,8 +5,11 @@ using EntityFrameworkCore.Integrations.Marten.Metadata;
 using EntityFrameworkCore.Integrations.Marten.Metadata.Infrastructure;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Weasel.Core;
@@ -56,7 +59,11 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
             .AddScoped<MartenIntegrationConventionSetBuilderDependencies>()
             .AddScoped<DbDocumentMartenRegistryDependencies>()
             .AddScoped<DbDocumentMartenRegistry>()
-            .AddScoped<IConventionSetPlugin, MartenIntegrationConventionSetPlugin>();
+            .AddScoped<IConventionSetPlugin, MartenIntegrationConventionSetPlugin>()
+            .Replace<IRelationalAnnotationProvider, MartenIntegrationAnnotationProvider>()
+            .Replace<IHistoryRepository, MartenIntegrationHistoryRepository>(ServiceLifetime.Scoped)
+            .Replace<IMigrationsSqlGenerator, MartenIntegrationMigrationSqlGenerator>(ServiceLifetime.Scoped)
+            .Replace<IMigrationsModelDiffer, MartenIntegrationMigrationModelsDiffer>(ServiceLifetime.Scoped);
     }
 
     public void ApplyServices(IServiceCollection services)
@@ -66,6 +73,7 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
             services.Add(serviceDescriptor);
         }
 
+        StoreOptions.AutoCreateSchemaObjects = AutoCreate.None;
         services.AddMarten(StoreOptions);
     }
 
@@ -100,14 +108,17 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
 
         if (!string.IsNullOrEmpty(npgSqlOptionsExtension.ConnectionString))
         {
+            
             StoreOptions.Connection(npgSqlOptionsExtension.ConnectionString);
         }
         else if (npgSqlOptionsExtension.Connection is NpgsqlConnection dbConnection)
         {
+            
             StoreOptions.Connection(() => dbConnection);
         }
         else if (npgSqlOptionsExtension.DataSource != null)
         {
+            
             StoreOptions.Connection(npgSqlOptionsExtension.DataSource.ConnectionString);
         }
     }

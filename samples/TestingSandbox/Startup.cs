@@ -1,3 +1,4 @@
+using Marten;
 using Microsoft.EntityFrameworkCore;
 
 namespace TestingSandbox;
@@ -16,10 +17,21 @@ public class Startup
         services.AddDbContext<TestingSandboxDbContext>(x =>
         {
             x.UseNpgsql(connectionString);
-            x.UseMartenIntegration();
+            x.UseMartenIntegration(store =>
+            {
+                store.WithRegistry(new TestRegistry());
+            });
         });
     }
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, TestingSandboxDbContext dbContext)
     {
+        dbContext.Database.Migrate();
+    }
+}
+public class TestRegistry:MartenRegistry
+{
+    public TestRegistry()
+    {
+        For<Invoice>().Index(x => x.Amount);
     }
 }

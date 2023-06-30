@@ -1,10 +1,15 @@
-﻿using EntityFrameworkCore.Integrations.Marten.Infrastructure;
+﻿using EntityFrameworkCore.Integrations.Marten.Design;
+using EntityFrameworkCore.Integrations.Marten.Infrastructure;
 using EntityFrameworkCore.Integrations.Marten.Internal;
 using EntityFrameworkCore.Integrations.Marten.Metadata;
 using EntityFrameworkCore.Integrations.Marten.Metadata.Infrastructure;
+using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Marten;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations.Design;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace TestingSandbox;
 
@@ -12,23 +17,7 @@ internal class MartenIntegrationDesignTimeServices : IDesignTimeServices
 {
     public void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
     {
-        //Console.WriteLine("WE HERE");
-        // serviceCollection
-        //     .AddSingleton<IDbDocumentFinder, DbDocumentFinder>()
-        //     .AddSingleton<IDbDocumentInitializer, DbDocumentInitializer>()
-        //     .AddSingleton<IDbDocumentSource, DbDocumentSource>()
-        //     .AddSingleton<IDocumentMappingFactory, DocumentMappingFactory>()
-        //     .AddSingleton<IMartenDocumentEntityTypeBuilder, MartenDocumentEntityTypeBuilder>()
-        //     .AddScoped<MartenIntegrationConventionSetBuilderDependencies>()
-        //     .AddScoped<IConventionSetPlugin, MartenIntegrationConventionSetPlugin>()
-        //     .AddMarten(x =>
-        //     {
-        //         x.Connection("Server=localhost;Database=martenIntegrationDb;User Id=postgres;password=password;");
-        //     });
+        serviceCollection
+            .AddSingleton<ICSharpMigrationOperationGenerator, MartenCSharpMigrationOperationGenerator>();
     }
 }
-//
-// internal class MartenIntegrationDesignTimeModel : IDesignTimeModel
-// {
-//     public IModel Model { get; }
-// }

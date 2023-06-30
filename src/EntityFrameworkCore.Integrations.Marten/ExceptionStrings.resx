@@ -25,9 +25,18 @@
         <value>{0} can only be added with a Postgres database. No {1} could be found within the EF configuration.</value>
     </data>
     <data name="CannotResolveMartenResource" xml:space="preserve">
-        <value>Required MartenResource {0} could not be resolved.</value>
+        <value>Required Marten resource {0} could not be resolved.</value>
     </data>
     <data name="DocumentInitializationFailed" xml:space="preserve">
         <value>{0} for entity type {1} failed to initialize.</value>
+    </data>
+    <data name="NoNpgsqlTypeMapping" xml:space="preserve">
+        <value>Unable to infer CLR type for the provided postgres type of {0}</value>
+    </data>
+    <data name="EntityBuilderFailure" xml:space="preserve">
+        <value>Entity build failed, unable to construct {0}: {1}. {2}.</value>
+    </data>
+    <data name="MartenResourceNotFound" xml:space="preserve">
+        <value>Expected Marten resource {0} could not be found.</value>
     </data>
 </root>

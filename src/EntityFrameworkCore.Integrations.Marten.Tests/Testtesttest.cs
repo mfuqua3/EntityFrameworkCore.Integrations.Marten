@@ -27,7 +27,7 @@ public class Testtesttest
         await using var scope = provider.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         var model = context.Model;
-        //var migrator = context.GetService<IMigrator>();
+        var migrator = context.GetService<IMigrator>();
     }
 }
 
