@@ -21,10 +21,20 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
     {
     }
 
+    protected override IEnumerable<MigrationOperation> Diff(IRelationalModel? source, IRelationalModel? target,
+        DiffContext diffContext)
+    {
+        foreach (var operation in base.Diff(source, target, diffContext))
+            yield return operation;
+        if (target != null && target.Tables.Any(x => x.IsMartenGenerated()) &&
+            (source == null || source.Tables.All(x => !x.IsMartenGenerated())))
+        {
+            yield return new CreateMartenSystemFunctionsOperation();
+        }
+    }
+
     protected override IEnumerable<MigrationOperation> Diff(ITable source, ITable target, DiffContext diffContext)
     {
-        Console.WriteLine(source.ToDebugString());
-        Console.WriteLine(target.ToDebugString());
         if (source.IsMartenGenerated() && target.IsMartenGenerated())
         {
             var sourceColumns = source.Columns.ToArray();
@@ -33,10 +43,13 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
                                          sourceColumns.Length != targetColumns.Length || !targetColumns.All(tc =>
                                              sourceColumns.Any(sc =>
                                                  sc.Name == tc.Name && sc.StoreType == tc.StoreType));
-            Console.WriteLine(functionsRequireUpdate);
             if (functionsRequireUpdate)
             {
-                yield return new UpdateMartenTableFunctionsOperation
+                yield return new DropMartenTableFunctionsOperation
+                {
+                    SchemaQualifiedTableName = target.SchemaQualifiedName
+                };
+                yield return new CreateMartenTableFunctionsOperation
                     { SchemaQualifiedTableName = target.SchemaQualifiedName };
             }
         }
@@ -54,11 +67,9 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
             yield return baseOperation;
         }
 
-        Console.WriteLine(target.AnnotationsToDebugString());
-        Console.WriteLine(target.ToDebugString());
         if (target.IsMartenGenerated())
         {
-            yield return new UpdateMartenTableFunctionsOperation
+            yield return new CreateMartenTableFunctionsOperation
                 { SchemaQualifiedTableName = target.SchemaQualifiedName };
         }
     }
@@ -72,7 +83,8 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
 
         if (source.IsMartenGenerated())
         {
-            yield return new DropMartenTableFunctionsOperation { SchemaQualifiedTableName = source.SchemaQualifiedName };
+            yield return new DropMartenTableFunctionsOperation
+                { SchemaQualifiedTableName = source.SchemaQualifiedName };
         }
     }
 

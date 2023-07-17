@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -12,6 +13,13 @@ public class MartenIntegrationAnnotationProvider : NpgsqlAnnotationProvider
     public MartenIntegrationAnnotationProvider(RelationalAnnotationProviderDependencies dependencies) :
         base(dependencies)
     {
+    }
+
+    public override IEnumerable<IAnnotation> For(IRelationalModel model, bool designTime)
+    {
+        
+        foreach (var annotation in base.For(model, designTime))
+            yield return annotation;
     }
 
     public override IEnumerable<IAnnotation> For(ITable table, bool designTime)

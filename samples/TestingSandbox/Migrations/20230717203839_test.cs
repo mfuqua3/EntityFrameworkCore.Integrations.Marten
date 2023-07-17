@@ -77,8 +77,10 @@ namespace TestingSandbox.Migrations
                 table: "public.mt_doc_invoice",
                 column: "(CAST(data ->> 'Amount' as integer))");
 
-            migrationBuilder.UpdateMartenTableFunctions(
+            migrationBuilder.CreateMartenTableFunctions(
                 schemaQualifiedTableName: "public.mt_doc_invoice");
+
+            migrationBuilder.CreateMartenSystemFunctions();
         }
 
         /// <inheritdoc />

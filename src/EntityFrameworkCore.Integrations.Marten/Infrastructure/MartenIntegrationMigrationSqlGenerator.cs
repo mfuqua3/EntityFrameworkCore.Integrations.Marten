@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
 using EntityFrameworkCore.Integrations.Marten.Design;
 using EntityFrameworkCore.Integrations.Marten.Exceptions;
 using EntityFrameworkCore.Integrations.Marten.Metadata;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
+using Marten.Schema.Identity.Sequences;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -42,7 +44,87 @@ public class MartenIntegrationMigrationSqlGenerator : NpgsqlMigrationsSqlGenerat
             return;
         }
 
+        if (operation is CreateMartenSystemFunctionsOperation createMartenSystemFunctionsOperation)
+        {
+            GenerateCreateMartenSystemFunctions(createMartenSystemFunctionsOperation, builder);
+            return;
+        }
+
         base.Generate(operation, model, builder);
+    }
+
+    private void GenerateCreateMartenSystemFunctions(CreateMartenSystemFunctionsOperation _,
+        MigrationCommandListBuilder builder)
+    {
+        var martenStorage = _martenIntegrationOptions.StoreOptions.Storage;
+        var systemFunctions = martenStorage.GetType()
+            .GetProperty("SystemFunctions", BindingFlags.Instance | BindingFlags.NonPublic)?
+            .GetValue(martenStorage) as IFeatureSchema;
+        if (systemFunctions == null)
+        {
+            throw new MartenIntegrationException(
+                MartenIntegrationStrings.MartenResourceNotFound(
+                    $"{nameof(IFeatureSchema)}:SystemFunctions"));
+        }
+
+        foreach (var schemaObject in systemFunctions.Objects)
+        {
+            var sqlSb = new StringBuilder();
+            var writer = new StringWriter(sqlSb);
+            schemaObject.WriteCreateStatement(systemFunctions.Migrator, writer);
+            builder.AppendLine(sqlSb.ToString());
+        }
+
+        GenerateHiloInfrastructure(systemFunctions.Migrator.DefaultSchemaName, builder);
+        builder.EndCommand();
+    }
+
+    private void GenerateHiloInfrastructure(string schema, MigrationCommandListBuilder builder)
+    {
+        builder.AppendLine(
+            $@"create table {schema}.mt_hilo
+(
+    entity_name varchar not null
+        constraint pkey_mt_hilo_entity_name
+            primary key,
+    hi_value    bigint default 0
+);");
+        
+        builder.AppendLine(
+            $@"create or replace function mt_get_next_hi(entity character varying) returns integer
+    language plpgsql
+as
+$$
+DECLARE
+current_value bigint;
+    next_value
+bigint;
+BEGIN
+select hi_value
+into current_value
+from {schema}.mt_hilo
+where entity_name = entity;
+IF
+current_value is null THEN
+        insert into {schema}.mt_hilo (entity_name, hi_value) values (entity, 0);
+        next_value
+:= 0;
+ELSE
+        next_value := current_value + 1;
+update {schema}.mt_hilo
+set hi_value = next_value
+where entity_name = entity and hi_value = current_value;
+
+IF
+NOT FOUND THEN
+            next_value := -1;
+END IF;
+END IF;
+
+return next_value;
+END
+
+$$;");
     }
 
     private void GenerateForMartenTableFunctions(MartenTableFunctionsOperation martenTableFunctionsOperation,
@@ -74,14 +156,14 @@ public class MartenIntegrationMigrationSqlGenerator : NpgsqlMigrationsSqlGenerat
             }
             else
             {
-                GenerateUpdateMartenFunction(function, tableFeature.Migrator, builder);
+                GenerateCreateMartenFunction(function, tableFeature.Migrator, builder);
             }
         }
 
         builder.EndCommand();
     }
 
-    private void GenerateUpdateMartenFunction(Function function ,Migrator migrator,
+    private void GenerateCreateMartenFunction(Function function, Migrator migrator,
         MigrationCommandListBuilder builder)
     {
         var sqlSb = new StringBuilder();
@@ -90,13 +172,10 @@ public class MartenIntegrationMigrationSqlGenerator : NpgsqlMigrationsSqlGenerat
         builder.AppendLine(sqlSb.ToString());
     }
 
-    private void GenerateDropMartenFunction(Function function,Migrator migrator,
+    private void GenerateDropMartenFunction(Function function, Migrator migrator,
         MigrationCommandListBuilder builder)
     {
-        var sqlSb = new StringBuilder();
-        using var stringWriter = new StringWriter(sqlSb);
-        function.WriteDropStatement(migrator, stringWriter);
-        builder.AppendLine(sqlSb.ToString());
+        builder.AppendLine($"DROP FUNCTION IF EXISTS {function.Identifier.QualifiedName};");
     }
 
     private void GenerateCreateComputedIndex(CreateComputedIndexOperation computedIndexOperation,

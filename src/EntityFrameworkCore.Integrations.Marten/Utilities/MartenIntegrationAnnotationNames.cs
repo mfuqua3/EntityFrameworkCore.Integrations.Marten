@@ -27,4 +27,5 @@ public static class MartenIntegrationAnnotationNames
     }
 
     public const string EntityManagement = "EntityManagement";
+    public const string MartenIntegration = "MartenIntegration";
 }

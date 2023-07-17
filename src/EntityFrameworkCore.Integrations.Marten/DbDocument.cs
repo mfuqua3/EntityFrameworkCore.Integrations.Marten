@@ -33,7 +33,8 @@ namespace EntityFrameworkCore.Integrations.Marten;
 ///     </para>
 /// </remarks>
 /// <typeparam name="TEntity">The type of entity being operated on by this set.</typeparam>
-public abstract class DbDocument<TEntity> : IQueryable<TEntity> where TEntity : class
+public abstract class DbDocument<TEntity> : IQueryable<TEntity>,
+    IAsyncEnumerable<TEntity> where TEntity : class
 {
     /// <summary>
     ///     Returns this object typed as <see cref="IAsyncEnumerable{T}" />.
@@ -105,5 +106,8 @@ public abstract class DbDocument<TEntity> : IQueryable<TEntity> where TEntity : 
     public virtual void UpsertRange(params TEntity[] entities)
         => throw new NotSupportedException();
     public virtual void UpsertRange(IEnumerable<TEntity> entities)
+        => throw new NotSupportedException();
+
+    public IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = new CancellationToken())
         => throw new NotSupportedException();
 }

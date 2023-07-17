@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace EntityFrameworkCore.Integrations.Marten.Metadata;
 
-
 public class DbDocumentFindingConvention : IModelInitializedConvention
 {
     public DbDocumentFindingConvention(MartenIntegrationConventionSetBuilderDependencies dependencies)

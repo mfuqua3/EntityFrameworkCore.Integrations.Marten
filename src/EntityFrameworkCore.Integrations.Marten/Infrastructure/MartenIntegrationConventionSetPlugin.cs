@@ -15,6 +15,7 @@ public class MartenIntegrationConventionSetPlugin : IConventionSetPlugin
 
     public ConventionSet ModifyConventions(ConventionSet conventionSet)
     {
+        conventionSet.ModelInitializedConventions.Add(new MartenIntegrationConvention());
         conventionSet.ModelInitializedConventions.Add(new DbDocumentFindingConvention(_dependencies));
         conventionSet.ModelInitializedConventions.Add(new MartenStorageModelConvention(_dependencies));
         return conventionSet;

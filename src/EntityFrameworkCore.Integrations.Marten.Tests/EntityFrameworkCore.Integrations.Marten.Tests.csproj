@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\samples\TestingSandbox\TestingSandbox.csproj" />
       <ProjectReference Include="..\EntityFrameworkCore.Integrations.Marten\EntityFrameworkCore.Integrations.Marten.csproj" />
     </ItemGroup>
 

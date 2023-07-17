@@ -33,10 +33,10 @@ public class MartenCSharpMigrationOperationGenerator : CSharpMigrationOperationG
         //base.Generate(builderName, operations, builder);
     }
 
-    protected void Generate(UpdateMartenTableFunctionsOperation operation, IndentedStringBuilder builder)
+    protected void Generate(CreateMartenTableFunctionsOperation operation, IndentedStringBuilder builder)
     {
         var code = Dependencies.CSharpHelper;
-        builder.AppendLine(".UpdateMartenTableFunctions(");
+        builder.AppendLine(".CreateMartenTableFunctions(");
         using (builder.Indent())
         {
             builder
@@ -44,6 +44,11 @@ public class MartenCSharpMigrationOperationGenerator : CSharpMigrationOperationG
                 .Append(code.Literal(operation.SchemaQualifiedTableName));
         }
         builder.Append(")");
+    }
+
+    protected void Generate(CreateMartenSystemFunctionsOperation operation, IndentedStringBuilder builder)
+    {
+        builder.Append(".CreateMartenSystemFunctions()");
     }
     
     protected void Generate(DropMartenTableFunctionsOperation operation, IndentedStringBuilder builder)

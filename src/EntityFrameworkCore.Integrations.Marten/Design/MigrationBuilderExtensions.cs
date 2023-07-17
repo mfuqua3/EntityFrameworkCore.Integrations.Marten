@@ -26,18 +26,26 @@ public static class MigrationBuilderExtensions
         => builder.CreateComputedIndex(name, table, new[] { column }, isUnique, includeColumns, casing, method,
             customMethod, sortOrder, nullsSortOrder, isConcurrent, mask, tableSpace, predicate, fillFactor, collation);
 
-    public static void UpdateMartenTableFunctions(
+    public static OperationBuilder<CreateMartenTableFunctionsOperation> CreateMartenTableFunctions(
         this MigrationBuilder builder, string schemaQualifiedTableName)
     {
-        var operation = new UpdateMartenTableFunctionsOperation() { SchemaQualifiedTableName = schemaQualifiedTableName};
+        var operation = new CreateMartenTableFunctionsOperation() { SchemaQualifiedTableName = schemaQualifiedTableName};
         builder.Operations.Add(operation);
+        return new OperationBuilder<CreateMartenTableFunctionsOperation>(operation);
     }
 
-    public static void DropMartenTableFunctions(this MigrationBuilder builder, string schemaQualifiedTableName)
+    public static OperationBuilder<CreateMartenSystemFunctionsOperation> CreateMartenSystemFunctions(this MigrationBuilder builder)
+    {
+        var operation = new CreateMartenSystemFunctionsOperation();
+        builder.Operations.Add(operation);
+        return new OperationBuilder<CreateMartenSystemFunctionsOperation>(operation);
+    }
+    public static OperationBuilder<DropMartenTableFunctionsOperation> DropMartenTableFunctions(this MigrationBuilder builder, string schemaQualifiedTableName)
     {
         var operation = new DropMartenTableFunctionsOperation()
             { SchemaQualifiedTableName = schemaQualifiedTableName, IsDestructiveChange = true };
         builder.Operations.Add(operation);
+        return new OperationBuilder<DropMartenTableFunctionsOperation>(operation);
     }
     public static OperationBuilder<CreateComputedIndexOperation> CreateComputedIndex(this MigrationBuilder builder,
         string name,

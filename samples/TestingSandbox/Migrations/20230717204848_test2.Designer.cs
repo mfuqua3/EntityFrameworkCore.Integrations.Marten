@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TestingSandbox;
@@ -12,9 +13,11 @@ using TestingSandbox;
 namespace TestingSandbox.Migrations
 {
     [DbContext(typeof(TestingSandboxDbContext))]
-    partial class TestingSandboxDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230717204848_test2")]
+    partial class test2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

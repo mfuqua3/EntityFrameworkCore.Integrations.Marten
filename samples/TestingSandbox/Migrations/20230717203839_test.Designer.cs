@@ -13,7 +13,7 @@ using TestingSandbox;
 namespace TestingSandbox.Migrations
 {
     [DbContext(typeof(TestingSandboxDbContext))]
-    [Migration("20230717194243_test")]
+    [Migration("20230717203839_test")]
     partial class test
     {
         /// <inheritdoc />
@@ -21,6 +21,7 @@ namespace TestingSandbox.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasAnnotation("MartenIntegration", "1.0.0.0")
                 .HasAnnotation("ProductVersion", "7.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
