@@ -120,5 +120,14 @@ namespace EntityFrameworkCore.Integrations.Marten {
                 return ResourceManager.GetString("MartenResourceNotFound", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be of type {1} in order to apply the {2}.
+        /// </summary>
+        internal static string MartenApiChange {
+            get {
+                return ResourceManager.GetString("MartenApiChange", resourceCulture);
+            }
+        }
     }
 }

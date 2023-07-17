@@ -44,7 +44,8 @@ namespace TestingSandbox.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_mt_doc_invoice", x => x.id);
-                });
+                })
+                .Annotation("EntityManagement", "Marten");
 
             migrationBuilder.CreateTable(
                 name: "Orders",
@@ -75,6 +76,9 @@ namespace TestingSandbox.Migrations
                 name: "mt_doc_invoice_idx_amount",
                 table: "public.mt_doc_invoice",
                 column: "(CAST(data ->> 'Amount' as integer))");
+
+            migrationBuilder.UpdateMartenTableFunctions(
+                schemaQualifiedTableName: "public.mt_doc_invoice");
         }
 
         /// <inheritdoc />
@@ -89,6 +93,9 @@ namespace TestingSandbox.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropMartenTableFunctions(
+                schemaQualifiedTableName: "public.mt_doc_invoice");
         }
     }
 }

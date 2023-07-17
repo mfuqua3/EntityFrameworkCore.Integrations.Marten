@@ -26,6 +26,19 @@ public static class MigrationBuilderExtensions
         => builder.CreateComputedIndex(name, table, new[] { column }, isUnique, includeColumns, casing, method,
             customMethod, sortOrder, nullsSortOrder, isConcurrent, mask, tableSpace, predicate, fillFactor, collation);
 
+    public static void UpdateMartenTableFunctions(
+        this MigrationBuilder builder, string schemaQualifiedTableName)
+    {
+        var operation = new UpdateMartenTableFunctionsOperation() { SchemaQualifiedTableName = schemaQualifiedTableName};
+        builder.Operations.Add(operation);
+    }
+
+    public static void DropMartenTableFunctions(this MigrationBuilder builder, string schemaQualifiedTableName)
+    {
+        var operation = new DropMartenTableFunctionsOperation()
+            { SchemaQualifiedTableName = schemaQualifiedTableName, IsDestructiveChange = true };
+        builder.Operations.Add(operation);
+    }
     public static OperationBuilder<CreateComputedIndexOperation> CreateComputedIndex(this MigrationBuilder builder,
         string name,
         string table,

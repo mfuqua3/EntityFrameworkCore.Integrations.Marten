@@ -56,6 +56,8 @@ public class MartenIntegrationExtension : IDbContextOptionsExtension
             .AddSingleton<IDbDocumentSource, DbDocumentSource>()
             .AddSingleton<IDocumentMappingFactory, DocumentMappingFactory>()
             .AddSingleton<IMartenDocumentEntityTypeBuilder, MartenDocumentEntityTypeBuilder>()
+            .AddSingleton<MartenIntegrationSingletonDependencies>()
+            .AddSingleton<IMartenIntegrationSingletonOptions, MartenIntegrationSingletonDependencies>()
             .AddScoped<MartenIntegrationConventionSetBuilderDependencies>()
             .AddScoped<DbDocumentMartenRegistryDependencies>()
             .AddScoped<DbDocumentMartenRegistry>()

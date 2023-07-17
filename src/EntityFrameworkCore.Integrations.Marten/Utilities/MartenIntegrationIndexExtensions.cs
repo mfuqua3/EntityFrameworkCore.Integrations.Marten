@@ -39,4 +39,8 @@ public static class MartenIntegrationIndexExtensions
         => (string?)(index.FindAnnotation(AnnotationNames.Collation)?.Value ?? _default.Collation);
     public static int? GetFillFactor(this IReadOnlyIndex index)
         => (int?)(index.FindAnnotation(AnnotationNames.FillFactor)?.Value ?? _default.FillFactor);
+    
+    public static bool IsMartenComputedIndex(this ITableIndex index)
+        => Equals(index.FindAnnotation(AnnotationNames.Type)?.Value, "ComputedIndex");
+    
 }

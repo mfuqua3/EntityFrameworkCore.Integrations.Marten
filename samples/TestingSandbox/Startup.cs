@@ -32,6 +32,6 @@ public class TestRegistry:MartenRegistry
 {
     public TestRegistry()
     {
-        For<Invoice>().Index(x => x.Amount);
+        For<Invoice>().Index(x=>x.Amount);
     }
 }

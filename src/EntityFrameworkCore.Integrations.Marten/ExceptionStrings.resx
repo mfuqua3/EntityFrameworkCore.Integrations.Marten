@@ -39,4 +39,7 @@
     <data name="MartenResourceNotFound" xml:space="preserve">
         <value>Expected Marten resource {0} could not be found.</value>
     </data>
+    <data name="MartenApiChange" xml:space="preserve">
+        <value>Unexpected error due to a breaking change in the Marten API. Details: {0}</value>
+    </data>
 </root>

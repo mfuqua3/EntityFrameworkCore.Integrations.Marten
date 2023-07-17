@@ -37,4 +37,6 @@ internal static class MartenIntegrationStrings
         => string.Format(ExceptionStrings.EntityBuilderFailure, modelElementType, modelElementName, failureReason ?? SeeInnerException);
     public static string MartenResourceNotFound(string resourceName)
         => string.Format(ExceptionStrings.MartenResourceNotFound, resourceName);
+    public static string MartenApiChange(string errorDetails)
+        => string.Format(ExceptionStrings.MartenApiChange, errorDetails);
 }

@@ -1,60 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using EntityFrameworkCore.Integrations.Marten.Design;
-using EntityFrameworkCore.Integrations.Marten.Metadata;
+using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Newtonsoft.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 
 namespace EntityFrameworkCore.Integrations.Marten.Infrastructure;
-
-public class MartenIntegrationHistoryRepository : NpgsqlHistoryRepository
-{
-    private IModel? _model;
-    public MartenIntegrationHistoryRepository(HistoryRepositoryDependencies dependencies) : base(dependencies)
-    {
-    }
-
-    public override string GetCreateScript()
-    {
-        var model = EnsureModel();
-
-        var operations = Dependencies.ModelDiffer.GetDifferences(null, model.GetRelationalModel());
-        var commandList = Dependencies.MigrationsSqlGenerator.Generate(operations, model);
-
-        return string.Concat(commandList.Select(c => c.CommandText));
-    }
-    
-    private IModel EnsureModel()
-    {
-        if (_model == null)
-        {
-            var conventionSet = Dependencies.ConventionSetBuilder.CreateConventionSet();
-
-            conventionSet.Remove(typeof(DbDocumentFindingConvention));
-            conventionSet.Remove(typeof(DbSetFindingConvention));
-            conventionSet.Remove(typeof(RelationalDbFunctionAttributeConvention));
-
-            var modelBuilder = new ModelBuilder(conventionSet);
-            modelBuilder.Entity<HistoryRow>(
-                x =>
-                {
-                    ConfigureTable(x);
-                    x.ToTable(TableName, TableSchema);
-                });
-
-            _model = Dependencies.ModelRuntimeInitializer.Initialize(
-                (IModel)modelBuilder.Model, designTime: true, validationLogger: null);
-        }
-
-        return _model;
-    }
-}
 
 [SuppressMessage("Usage", "EF1001:Internal EF Core API usage.")]
 public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
@@ -66,25 +21,65 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
     {
     }
 
-    protected override IEnumerable<MigrationOperation> Diff(IEnumerable<ITable> source, IEnumerable<ITable> target, DiffContext diffContext)
+    protected override IEnumerable<MigrationOperation> Diff(ITable source, ITable target, DiffContext diffContext)
     {
-        return base.Diff(source, target, diffContext);
+        Console.WriteLine(source.ToDebugString());
+        Console.WriteLine(target.ToDebugString());
+        if (source.IsMartenGenerated() && target.IsMartenGenerated())
+        {
+            var sourceColumns = source.Columns.ToArray();
+            var targetColumns = target.Columns.ToArray();
+            var functionsRequireUpdate = !target.SchemaQualifiedName.Equals(source.SchemaQualifiedName) ||
+                                         sourceColumns.Length != targetColumns.Length || !targetColumns.All(tc =>
+                                             sourceColumns.Any(sc =>
+                                                 sc.Name == tc.Name && sc.StoreType == tc.StoreType));
+            Console.WriteLine(functionsRequireUpdate);
+            if (functionsRequireUpdate)
+            {
+                yield return new UpdateMartenTableFunctionsOperation
+                    { SchemaQualifiedTableName = target.SchemaQualifiedName };
+            }
+        }
+
+        foreach (var baseOperation in base.Diff(source, target, diffContext))
+        {
+            yield return baseOperation;
+        }
+    }
+
+    protected override IEnumerable<MigrationOperation> Add(ITable target, DiffContext diffContext)
+    {
+        foreach (var baseOperation in base.Add(target, diffContext))
+        {
+            yield return baseOperation;
+        }
+
+        Console.WriteLine(target.AnnotationsToDebugString());
+        Console.WriteLine(target.ToDebugString());
+        if (target.IsMartenGenerated())
+        {
+            yield return new UpdateMartenTableFunctionsOperation
+                { SchemaQualifiedTableName = target.SchemaQualifiedName };
+        }
+    }
+
+    protected override IEnumerable<MigrationOperation> Remove(ITable source, DiffContext diffContext)
+    {
+        foreach (var baseOperation in base.Remove(source, diffContext))
+        {
+            yield return baseOperation;
+        }
+
+        if (source.IsMartenGenerated())
+        {
+            yield return new DropMartenTableFunctionsOperation { SchemaQualifiedTableName = source.SchemaQualifiedName };
+        }
     }
 
     protected override IEnumerable<MigrationOperation> Add(ITableIndex target, DiffContext diffContext)
     {
-        return target.IsMartenComputedIndex() ? new[] { CreateComputedIndexOperation.CreateFrom(target) } : base.Add(target, diffContext);
+        return target.IsMartenComputedIndex()
+            ? new[] { CreateComputedIndexOperation.CreateFrom(target) }
+            : base.Add(target, diffContext);
     }
-}
-
-internal static class TableExtensions
-{
-    public static bool IsMartenGenerated(this ITable table)
-        => Equals(table.FindAnnotation("EntityGenerationStrategy")?.Value, "Marten");
-}
-
-internal static class TableIndexExtensions
-{
-    public static bool IsMartenComputedIndex(this ITableIndex table)
-        => Equals(table.FindAnnotation("MartenIndexType")?.Value, "ComputedIndex");
 }

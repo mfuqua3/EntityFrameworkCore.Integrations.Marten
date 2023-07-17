@@ -1,22 +1,21 @@
-using System.Data;
+using System.Data.Common;
 using System.Reflection;
+using System.Text;
 using EntityFrameworkCore.Integrations.Marten.Exceptions;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Marten.Schema;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
+using Weasel.Core;
 using Weasel.Core.Migrations;
 using Weasel.Postgresql;
-using Weasel.Postgresql.Functions;
 using Weasel.Postgresql.Tables;
 using Sequence = Weasel.Postgresql.Sequence;
 using SortOrder = Weasel.Postgresql.Tables.SortOrder;
 using Table = Weasel.Postgresql.Tables.Table;
-using View = Weasel.Postgresql.Views.View;
 
 namespace EntityFrameworkCore.Integrations.Marten.Metadata;
 
@@ -52,41 +51,28 @@ public class MartenStorageModelConvention : IModelInitializedConvention
     private void ProcessFeature(IConventionModelBuilder modelBuilder, IFeatureSchema featureSchema,
         IConventionEntityType entityType)
     {
-        var documentType = entityType.ClrType;
-        var schemaObjects = featureSchema.Objects;
+        var schemaObjects = featureSchema.Objects.OrderBy(x => x is Table);
         foreach (var schemaObject in schemaObjects)
         {
             switch (schemaObject)
             {
                 case Table table:
                     TryExecuteModelOperation(
-                        () => ProcessTable(modelBuilder, table, entityType),
+                        () => ProcessTable(table, entityType),
                         nameof(Table),
                         table.Identifier.QualifiedName);
                     break;
-                case Function function:
-                    TryExecuteModelOperation(
-                        () => ProcessFunction(modelBuilder, function, entityType),
-                        nameof(Function),
-                        function.Identifier.QualifiedName);
-                    break;
                 case Sequence sequence:
                     TryExecuteModelOperation(
-                        () => ProcessSequence(modelBuilder, sequence, documentType),
+                        () => ProcessSequence(modelBuilder, sequence, entityType),
                         nameof(Sequence),
                         sequence.Identifier.QualifiedName);
-                    break;
-                case View view:
-                    TryExecuteModelOperation(
-                        () => ProcessView(modelBuilder, view, documentType),
-                        nameof(View),
-                        view.Identifier.QualifiedName);
                     break;
             }
         }
     }
 
-    private void ProcessTable(IConventionModelBuilder modelBuilder, Table table, IConventionEntityType entityType)
+    private void ProcessTable(Table table, IConventionEntityType entityType)
     {
         var propertyBuilderLookup = new Dictionary<string, IConventionPropertyBuilder>();
         var entityTypeBuilder = entityType.Builder;
@@ -127,7 +113,6 @@ public class MartenStorageModelConvention : IModelInitializedConvention
 
         foreach (var index in table.Indexes)
         {
-            var ddl = index.ToDDL(table);
             TryExecuteModelOperation(
                 () => ProcessIndex(entityTypeBuilder, index),
                 "Index",
@@ -136,7 +121,8 @@ public class MartenStorageModelConvention : IModelInitializedConvention
 
         entityTypeBuilder.PrimaryKey(table.PrimaryKeyColumns.Select(x => propertyBuilderLookup[x].Metadata).ToArray())!
             .HasName(table.PrimaryKeyName);
-        entityTypeBuilder.HasAnnotation("EntityGenerationStrategy", "Marten");
+        entityTypeBuilder.HasAnnotation(MartenIntegrationAnnotationNames.EntityManagement,
+            MartenIntegrationAnnotationValues.MartenEntityManagement, true);
     }
 
     private void ProcessIndex(IConventionEntityTypeBuilder entityBuilder, IndexDefinition index)
@@ -189,7 +175,7 @@ public class MartenStorageModelConvention : IModelInitializedConvention
             }).Distinct()
             .ToArray();
         var indexBuilder = entityBuilder.HasIndex(columns, index.Name)!
-            .HasAnnotation("MartenIndexType", "ComputedIndex", true)!;
+            .HasAnnotation(MartenIntegrationAnnotationNames.ComputedIndex.Type, "ComputedIndex", true)!;
         var indexProperties = index.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(pi =>
             pi.PropertyType.IsPrimitive ||
             pi.PropertyType.IsEnum ||
@@ -197,12 +183,20 @@ public class MartenStorageModelConvention : IModelInitializedConvention
             pi.PropertyType == typeof(string[]));
         foreach (var indexProperty in indexProperties)
         {
+            if (indexProperty.Name == nameof(ComputedIndex.Name))
+            {
+                continue;
+            }
             var value = indexProperty.GetValue(index);
             if (indexProperty.PropertyType.IsEnum)
             {
                 value = Convert.ToInt32(value);
             }
 
+            if (value.IsNullOrDefault())
+            {
+                continue;
+            }
             indexBuilder.HasAnnotation($"MartenComputedIndex:{indexProperty.Name}", value, true);
         }
     }
@@ -245,33 +239,59 @@ public class MartenStorageModelConvention : IModelInitializedConvention
         return clrType;
     }
 
-    private string GetDbType(Type clrType)
+    private void ProcessSequence(IConventionModelBuilder modelBuilder, Sequence sequence,
+        IConventionEntityType entityType)
     {
-        var typeMappings = NpgsqlTypeMapper.Mappings;
-        var mapping = typeMappings.FirstOrDefault(x => x.ClrTypes.Contains(clrType));
-        if (mapping?.DataTypeName == null)
+        var insertStatementSb = new StringBuilder();
+        using var writer = new StringWriter(insertStatementSb);
+        var migrator = new NullMigrator();
+        sequence.WriteCreateStatement(migrator, writer);
+        var insertStatement = insertStatementSb.ToString();
+        var sequenceStartMatch = MartenIntegrationPatterns.SequenceStartValueFromInsert.Match(insertStatement);
+        var sequenceStart =
+            sequenceStartMatch.Success && long.TryParse(sequenceStartMatch.Groups[1].Value, out var parsed)
+                ? parsed
+                : 0;
+        if (!string.IsNullOrEmpty(sequence.OwnerColumn))
         {
-            throw new ArgumentException(
-                MartenIntegrationStrings.NoNpgsqlTypeMapping(clrType.Name),
-                nameof(clrType));
+            var property = entityType.FindProperty(sequence.OwnerColumn);
+            if (property != null)
+            {
+                property.Builder.HasSequence(sequence.Identifier.Name, sequence.Identifier.Schema)!
+                    .StartsAt(sequenceStart);
+                return;
+            }
         }
 
-        return mapping.DataTypeName;
+        modelBuilder.HasSequence(sequence.Identifier.Name, sequence.Identifier.Schema, fromDataAnnotation: true)
+            .StartsAt(sequenceStart);
     }
 
-
-    private void ProcessFunction(IConventionModelBuilder modelBuilder, Function function, IConventionEntityType entityType)
+    private sealed class NullMigrator : Migrator
     {
-        function.
-        entityType.Builder
-            .HasAnnotation("schema_function_" + function.Identifier.Name, function.Body().GetHashCode());
-    }
+        private const string ErrorDetails =
+            "Entity creation uses a null instance of the Marten migrator in order to inspect Marten generated SQL. " +
+            "This null migrator instance no longer works with the Marten API and needs to be updated";
 
-    private void ProcessSequence(IConventionModelBuilder modelBuilder, Sequence function, Type documentType)
-    {
-    }
+        public NullMigrator() : base(string.Empty)
+        {
+        }
 
-    private void ProcessView(IConventionModelBuilder modelBuilder, View view, Type documentType)
-    {
+        public override void WriteScript(TextWriter writer, Action<Migrator, TextWriter> writeStep)
+            => throw new MartenIntegrationException(MartenIntegrationStrings.MartenApiChange(ErrorDetails));
+
+        public override void WriteSchemaCreationSql(IEnumerable<string> schemaNames, TextWriter writer)
+            => throw new MartenIntegrationException(MartenIntegrationStrings.MartenApiChange(ErrorDetails));
+
+        protected override Task executeDelta(SchemaMigration migration, DbConnection conn, AutoCreate autoCreate,
+            IMigrationLogger logger,
+            CancellationToken ct = new())
+            => throw new MartenIntegrationException(MartenIntegrationStrings.MartenApiChange(ErrorDetails));
+
+        public override string ToExecuteScriptLine(string scriptName)
+            => throw new MartenIntegrationException(MartenIntegrationStrings.MartenApiChange(ErrorDetails));
+
+        public override void AssertValidIdentifier(string name)
+            => throw new MartenIntegrationException(MartenIntegrationStrings.MartenApiChange(ErrorDetails));
     }
 }

@@ -71,26 +71,12 @@ namespace TestingSandbox.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "data" }, "mt_doc_invoice_idx_amount")
-                        .HasAnnotation("MartenComputedIndex:Casing", 0)
-                        .HasAnnotation("MartenComputedIndex:Collation", null)
                         .HasAnnotation("MartenComputedIndex:Columns", new[] { "(CAST(data ->> 'Amount' as integer))" })
-                        .HasAnnotation("MartenComputedIndex:CustomMethod", null)
-                        .HasAnnotation("MartenComputedIndex:IncludeColumns", null)
-                        .HasAnnotation("MartenComputedIndex:IsConcurrent", false)
-                        .HasAnnotation("MartenComputedIndex:IsUnique", false)
-                        .HasAnnotation("MartenComputedIndex:Mask", null)
-                        .HasAnnotation("MartenComputedIndex:Method", 0)
-                        .HasAnnotation("MartenComputedIndex:Name", "mt_doc_invoice_idx_amount")
-                        .HasAnnotation("MartenComputedIndex:NullsSortOrder", 0)
-                        .HasAnnotation("MartenComputedIndex:Predicate", null)
-                        .HasAnnotation("MartenComputedIndex:SortOrder", 0)
-                        .HasAnnotation("MartenComputedIndex:TableSpace", null)
-                        .HasAnnotation("MartenComputedIndex:TenancyScope", 0)
                         .HasAnnotation("MartenIndexType", "ComputedIndex");
 
                     b.ToTable("mt_doc_invoice", "public");
 
-                    b.HasAnnotation("EntityGenerationStrategy", "Marten");
+                    b.HasAnnotation("EntityManagement", "Marten");
                 });
 
             modelBuilder.Entity("TestingSandbox.Order", b =>

@@ -25,4 +25,6 @@ public static class MartenIntegrationAnnotationNames
         public static readonly string TableSpace = string.Join(':', Category, nameof(Index.TableSpace));
         public static readonly string FillFactor = string.Join(':', Category, nameof(Index.FillFactor));
     }
+
+    public const string EntityManagement = "EntityManagement";
 }

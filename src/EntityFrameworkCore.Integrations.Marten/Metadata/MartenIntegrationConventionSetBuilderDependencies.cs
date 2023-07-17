@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EntityFrameworkCore.Integrations.Marten.Metadata;
 
-public sealed record MartenIntegrationConventionSetBuilderDependencies
+public sealed record MartenIntegrationConventionSetBuilderDependencies: IMartenIntegrationSingletonOptions
 {
     private readonly ICurrentDbContext _currentContext;
 

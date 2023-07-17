@@ -10,7 +10,6 @@ public class MartenCSharpMigrationOperationGenerator : CSharpMigrationOperationG
         base(dependencies)
     {
     }
-
     public override void Generate(string builderName, IReadOnlyList<MigrationOperation> operations, IndentedStringBuilder builder)
     {
         var first = true;
@@ -32,6 +31,32 @@ public class MartenCSharpMigrationOperationGenerator : CSharpMigrationOperationG
             builder.Append(";");
         }
         //base.Generate(builderName, operations, builder);
+    }
+
+    protected void Generate(UpdateMartenTableFunctionsOperation operation, IndentedStringBuilder builder)
+    {
+        var code = Dependencies.CSharpHelper;
+        builder.AppendLine(".UpdateMartenTableFunctions(");
+        using (builder.Indent())
+        {
+            builder
+                .Append("schemaQualifiedTableName: ")
+                .Append(code.Literal(operation.SchemaQualifiedTableName));
+        }
+        builder.Append(")");
+    }
+    
+    protected void Generate(DropMartenTableFunctionsOperation operation, IndentedStringBuilder builder)
+    {
+        var code = Dependencies.CSharpHelper;
+        builder.AppendLine(".DropMartenTableFunctions(");
+        using (builder.Indent())
+        {
+            builder
+                .Append("schemaQualifiedTableName: ")
+                .Append(code.Literal(operation.SchemaQualifiedTableName));
+        }
+        builder.Append(")");
     }
 
     protected void Generate(CreateComputedIndexOperation operation, IndentedStringBuilder builder)
