@@ -36,7 +36,7 @@ public class MartenIntegrationHistoryRepository : NpgsqlHistoryRepository
         {
             var conventionSet = Dependencies.ConventionSetBuilder.CreateConventionSet();
 
-            conventionSet.Remove(typeof(MartenStorageModelConvention));
+            conventionSet.Remove(typeof(DbDocumentFindingConvention));
             conventionSet.Remove(typeof(DbSetFindingConvention));
             conventionSet.Remove(typeof(RelationalDbFunctionAttributeConvention));
 
@@ -66,7 +66,7 @@ public class MartenIntegrationMigrationModelsDiffer : MigrationsModelDiffer
     {
     }
 
-    protected override IEnumerable<MigrationOperation> Diff(IRelationalModel? source, IRelationalModel? target, DiffContext diffContext)
+    protected override IEnumerable<MigrationOperation> Diff(IEnumerable<ITable> source, IEnumerable<ITable> target, DiffContext diffContext)
     {
         return base.Diff(source, target, diffContext);
     }

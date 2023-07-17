@@ -9,20 +9,20 @@ public static class MartenIntegrationAnnotationNames
     {
         private const string Category = "MartenComputedIndex";
         public const string Type = "MartenIndexType";
-        public static string Casing = string.Join(':', Category, nameof(Index.Casing));
-        public static string Collation = string.Join(':', Category, nameof(Index.Collation));
-        public static string Columns = string.Join(':', Category, nameof(Index.Columns));
-        public static string CustomMethod = string.Join(':', Category, nameof(Index.CustomMethod));
-        public static string IncludeColumns = string.Join(':', Category, nameof(Index.IncludeColumns));
-        public static string IsConcurrent = string.Join(':', Category, nameof(Index.IsConcurrent));
-        public static string IsUnique = string.Join(':', Category, nameof(Index.IsUnique));
-        public static string Mask = string.Join(':', Category, nameof(Index.Mask));
-        public static string Method = string.Join(':', Category, nameof(Index.Method));
+        public static readonly string Casing = string.Join(':', Category, nameof(Index.Casing));
+        public static readonly string Collation = string.Join(':', Category, nameof(Index.Collation));
+        public static readonly string Columns = string.Join(':', Category, nameof(Index.Columns));
+        public static readonly string CustomMethod = string.Join(':', Category, nameof(Index.CustomMethod));
+        public static readonly string IncludeColumns = string.Join(':', Category, nameof(Index.IncludeColumns));
+        public static readonly string IsConcurrent = string.Join(':', Category, nameof(Index.IsConcurrent));
+        public static readonly string IsUnique = string.Join(':', Category, nameof(Index.IsUnique));
+        public static readonly string Mask = string.Join(':', Category, nameof(Index.Mask));
+        public static readonly string Method = string.Join(':', Category, nameof(Index.Method));
         public static string Name = string.Join(':', Category, nameof(Index.Name));
-        public static string NullsSortOrder = string.Join(':', Category, nameof(Index.NullsSortOrder));
-        public static string Predicate = string.Join(':', Category, nameof(Index.Predicate));
-        public static string SortOrder = string.Join(':', Category, nameof(Index.SortOrder));
-        public static string TableSpace = string.Join(':', Category, nameof(Index.TableSpace));
-        public static string FillFactor = string.Join(':', Category, nameof(Index.FillFactor));
+        public static readonly string NullsSortOrder = string.Join(':', Category, nameof(Index.NullsSortOrder));
+        public static readonly string Predicate = string.Join(':', Category, nameof(Index.Predicate));
+        public static readonly string SortOrder = string.Join(':', Category, nameof(Index.SortOrder));
+        public static readonly string TableSpace = string.Join(':', Category, nameof(Index.TableSpace));
+        public static readonly string FillFactor = string.Join(':', Category, nameof(Index.FillFactor));
     }
 }

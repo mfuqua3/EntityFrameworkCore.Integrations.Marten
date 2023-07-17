@@ -3,8 +3,10 @@ using System.Reflection;
 using EntityFrameworkCore.Integrations.Marten.Exceptions;
 using EntityFrameworkCore.Integrations.Marten.Utilities;
 using Marten.Schema;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
 using Weasel.Core.Migrations;
@@ -31,42 +33,26 @@ public class MartenStorageModelConvention : IModelInitializedConvention
         IConventionModelBuilder modelBuilder,
         IConventionContext<IConventionModelBuilder> context)
     {
-        foreach (var documentInfo in Dependencies.DocumentFinder.FindDocuments(Dependencies.ContextType))
+        var martenManagedEntities = modelBuilder.Metadata.GetMartenManagedEntities();
+        foreach (var entityType in martenManagedEntities)
         {
-            var documentMapping = Dependencies.DocumentMappingFactory.GetMapping(
-                documentInfo.Type,
-                Dependencies.StoreOptions);
-            var feature = Dependencies.StoreOptions.Storage.FindFeature(documentInfo.Type);
+            var feature = Dependencies.StoreOptions.Storage.FindFeature(entityType.ClrType);
             try
             {
-                ProcessFeature(modelBuilder, feature, documentInfo.Type);
+                ProcessFeature(modelBuilder, feature, entityType);
             }
             catch (Exception ex)
             {
                 throw new MartenEntityBuilderException(
-                    MartenIntegrationStrings.EntityBuilderFailure("Entity", documentInfo.Type.Name), ex);
+                    MartenIntegrationStrings.EntityBuilderFailure("Entity", entityType.Name), ex);
             }
-            // entityTypeBuilder.ToTable(documentMapping.TableName.Name, documentMapping.TableName.Schema);
-
-            // foreach (var entityProperty in entityTypeBuilder.Metadata.ClrType.GetProperties())
-            // {
-            //     entityTypeBuilder.Ignore(entityProperty.Name);
-            // }
-            //
-            // var idProperty = entityTypeBuilder
-            //     .Property(documentMapping.IdType, "mt__property__" + documentMapping.IdMember.Name)!
-            //     .HasColumnName("id")!
-            //     .HasColumnType(PostgresqlProvider.Instance.GetDatabaseType(documentMapping.IdType,
-            //         documentMapping.EnumStorage));
-            // entityTypeBuilder.PrimaryKey(new[] { idProperty.Metadata });
-            // entityTypeBuilder.ExcludeTableFromMigrations(true);
-            //entityTypeBuilder.HasAnnotation("EntityGenerationStrategy", "Marten");
-            //Dependencies.EntityTypeBuilder.ProcessMartenDocument(entityTypeBuilder, documentMapping);
         }
     }
 
-    private void ProcessFeature(IConventionModelBuilder modelBuilder, IFeatureSchema featureSchema, Type documentType)
+    private void ProcessFeature(IConventionModelBuilder modelBuilder, IFeatureSchema featureSchema,
+        IConventionEntityType entityType)
     {
+        var documentType = entityType.ClrType;
         var schemaObjects = featureSchema.Objects;
         foreach (var schemaObject in schemaObjects)
         {
@@ -74,16 +60,15 @@ public class MartenStorageModelConvention : IModelInitializedConvention
             {
                 case Table table:
                     TryExecuteModelOperation(
-                        () => ProcessTable(modelBuilder, table, documentType),
+                        () => ProcessTable(modelBuilder, table, entityType),
                         nameof(Table),
                         table.Identifier.QualifiedName);
                     break;
                 case Function function:
                     TryExecuteModelOperation(
-                        () => ProcessFunction(modelBuilder, function, documentType),
+                        () => ProcessFunction(modelBuilder, function, entityType),
                         nameof(Function),
                         function.Identifier.QualifiedName);
-                    ProcessFunction(modelBuilder, function, documentType);
                     break;
                 case Sequence sequence:
                     TryExecuteModelOperation(
@@ -101,10 +86,10 @@ public class MartenStorageModelConvention : IModelInitializedConvention
         }
     }
 
-    private void ProcessTable(IConventionModelBuilder modelBuilder, Table table, Type documentType)
+    private void ProcessTable(IConventionModelBuilder modelBuilder, Table table, IConventionEntityType entityType)
     {
         var propertyBuilderLookup = new Dictionary<string, IConventionPropertyBuilder>();
-        var entityTypeBuilder = modelBuilder.Entity(documentType, fromDataAnnotation: true)!;
+        var entityTypeBuilder = entityType.Builder;
         entityTypeBuilder.ToTable(table.Identifier.Name, table.Identifier.Schema);
 
         var dataColumn = table.Columns.FirstOrDefault(x =>
@@ -275,8 +260,11 @@ public class MartenStorageModelConvention : IModelInitializedConvention
     }
 
 
-    private void ProcessFunction(IConventionModelBuilder modelBuilder, Function function, Type documentType)
+    private void ProcessFunction(IConventionModelBuilder modelBuilder, Function function, IConventionEntityType entityType)
     {
+        function.
+        entityType.Builder
+            .HasAnnotation("schema_function_" + function.Identifier.Name, function.Body().GetHashCode());
     }
 
     private void ProcessSequence(IConventionModelBuilder modelBuilder, Sequence function, Type documentType)
@@ -286,5 +274,4 @@ public class MartenStorageModelConvention : IModelInitializedConvention
     private void ProcessView(IConventionModelBuilder modelBuilder, View view, Type documentType)
     {
     }
-
 }
