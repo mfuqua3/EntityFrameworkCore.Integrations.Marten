@@ -4,7 +4,7 @@ This library is designed to seamlessly integrate [Marten](https://martendb.io/),
 
 ## Ongoing Development
 
-This project is a work-in-progress with an intended pre-release date of 17 July, 2023. Star the repository to follow development. 
+This project is a work-in-progress. Star the repository to follow development. 
 
 ## Design Goals
 
